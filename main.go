@@ -9,34 +9,12 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/arukim/expansion/game"
+	"github.com/arukim/expansion/models"
 	"github.com/gorilla/websocket"
 )
 
 var addr = flag.String("addr", "localhost:8080", "http service address")
-
-type Point struct {
-	X int
-	Y int
-}
-
-type LevelProgress struct {
-	Current    int
-	LastPassed int
-	Total      int
-	Scores     bool
-	multiple   bool
-}
-
-type TurnInfo struct {
-	OnlyMyName    bool
-	MyColor       int
-	ShowName      bool
-	Offset        Point
-	MyBase        Point
-	Forces        string
-	Layers        []string
-	LevelProgress LevelProgress
-}
 
 func main() {
 	flag.Parse()
@@ -70,10 +48,13 @@ func main() {
 				return
 			}
 
-			turnInfo := TurnInfo{}
+			turnInfo := models.TurnInfo{}
 			json.Unmarshal(message[6:], &turnInfo)
+			g := game.NewGameTurn(&turnInfo)
+			move := g.FindMove()
+			log.Printf("My move is %v", move)
 			//log.Printf("recv: %s", message)
-			log.Printf("turn info: %+v", turnInfo)
+			//log.Printf("turn info: %+v", turnInfo)
 		}
 	}()
 
