@@ -19,6 +19,7 @@ type Board struct {
 	ForcesMap  *m.Map
 
 	GoldList []m.Point
+	Enemies  []m.Point
 }
 
 func NewBoard(t *m.TurnInfo) *Board {
@@ -69,6 +70,9 @@ func (b *Board) parse(t *m.TurnInfo) {
 			b.PlayersMap.Data[i] = 3
 		case 45:
 			b.PlayersMap.Data[i] = -1
+		}
+		if b.PlayersMap.Data[i] != -1 && b.PlayersMap.Data[i] != t.MyColor {
+			b.Enemies = append(b.Enemies, m.NewPoint(i, b.Width))
 		}
 	}
 

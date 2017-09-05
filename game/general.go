@@ -32,11 +32,20 @@ func (g *General) MakeTurn(b *Board) *m.Turn {
 
 func (g *General) findMove() *m.Movement {
 	var b = g.board
-	nearest := linq.From(b.GoldList).OrderByT(func(x m.Point) int {
-		return b.GetDistance(x)
-	}).First().(m.Point)
 
-	move := b.GetDirection(nearest)
+	p := m.Point{}
+
+	if len(b.GoldList) > 0 {
+		p = linq.From(b.GoldList).OrderByT(func(x m.Point) int {
+			return b.GetDistance(x)
+		}).First().(m.Point)
+	} else if len(b.Enemies) > 0 {
+		p = linq.From(b.Enemies).OrderByT(func(x m.Point) int {
+			return b.GetDistance(x)
+		}).First().(m.Point)
+	}
+
+	move := b.GetDirection(p)
 
 	move.Count = b.ForcesMap.Get(move.Region) - 1
 
