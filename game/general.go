@@ -18,7 +18,12 @@ func (g *General) MakeTurn(b *Board) *m.Turn {
 	move := g.findMove()
 
 	return &m.Turn{
-		Increase: []m.Increase{},
+		Increase: []m.Increase{
+			m.Increase{
+				Count:  10,
+				Region: move.Region,
+			},
+		},
 		Movements: []m.Movement{
 			*move,
 		},

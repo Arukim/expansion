@@ -8,7 +8,7 @@ type Movement struct {
 
 type Increase struct {
 	Count  int   `json:"count"`
-	Region Point `json:"direction"`
+	Region Point `json:"region"`
 }
 
 type Turn struct {

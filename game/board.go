@@ -151,9 +151,9 @@ func (b *Board) GetDirection(p m.Point) *m.Movement {
 				dir = neighbour.GetDirection(p)
 				p = neighbour
 				return false
-			} else if b.MoveMap.Data[n_pos] < pos {
+			} else if b.MoveMap.Data[n_pos] == pos-1 {
 				p = neighbour
-				pos = n_pos
+				pos--
 				return false
 			}
 			return true
