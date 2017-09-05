@@ -108,7 +108,9 @@ func (g *GameTurn) buildMoveMap() {
 		turn++
 		changes := []models.Point{}
 		for _, f := range myForces {
-			g.MoveMap[f.GetPos(g.Width)] = turn
+			if g.MoveMap[f.GetPos(g.Width)] == 0 {
+				g.MoveMap[f.GetPos(g.Width)] = turn
+			}
 			g.Neighbours(f, func(pos int, p models.Point) bool {
 				moveV := g.MoveMap[pos]
 				walkV := g.WalkMap[pos]
@@ -158,6 +160,7 @@ func (g *GameTurn) GetDirection(p models.Point) string {
 			return true
 		})
 	}
+
 	return dir
 }
 
