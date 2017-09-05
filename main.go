@@ -56,6 +56,10 @@ func main() {
 			json.Unmarshal(message[6:], &turnInfo)
 			b := game.NewBoard(&turnInfo)
 			move := g.MakeTurn(b)
+			if move == nil {
+				log.Print("no turn")
+				continue
+			}
 
 			payload, _ := json.Marshal(move)
 			msg := fmt.Sprintf("message('%s')", payload)

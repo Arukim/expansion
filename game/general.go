@@ -17,6 +17,10 @@ func (g *General) MakeTurn(b *Board) *m.Turn {
 
 	move := g.findMove()
 
+	if move == nil {
+		return nil
+	}
+
 	return &m.Turn{
 		Increase: []m.Increase{
 			m.Increase{
@@ -47,7 +51,8 @@ func (g *General) findMove() *m.Movement {
 
 	move := b.GetDirection(p)
 
-	move.Count = b.ForcesMap.Get(move.Region) - 1
-
+	if move != nil {
+		move.Count = b.ForcesMap.Get(move.Region) - 1
+	}
 	return move
 }

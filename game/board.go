@@ -31,14 +31,6 @@ func NewBoard(t *m.TurnInfo) *Board {
 	return b
 }
 
-func rotate(arr []rune, len int) []rune {
-	res := []rune{}
-	for i := len - 1; i >= 0; i-- {
-		res = append(res, arr[i*len:i*len+len]...)
-	}
-	return res
-}
-
 func (b *Board) rotate(i int) int {
 	return (i % b.Width) + (b.Width-1-i/b.Width)*b.Width
 }
