@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -38,6 +39,8 @@ func main() {
 
 	done := make(chan struct{})
 
+	g := game.NewGeneral()
+
 	go func() {
 		defer c.Close()
 		defer close(done)
@@ -50,9 +53,13 @@ func main() {
 
 			turnInfo := models.TurnInfo{}
 			json.Unmarshal(message[6:], &turnInfo)
-			g := game.NewGameTurn(&turnInfo)
-			move := g.FindMove()
-			log.Printf("My move is %v", move)
+			b := game.NewBoard(&turnInfo)
+			move := g.MakeTurn(b)
+
+			payload, _ := json.Marshal(move)
+			msg := fmt.Sprintf("message('%s')", payload)
+			log.Printf("My move is %v\n", msg)
+			c.WriteMessage(websocket.TextMessage, []byte(msg))
 			//log.Printf("recv: %s", message)
 			//log.Printf("turn info: %+v", turnInfo)
 		}
@@ -63,12 +70,6 @@ func main() {
 
 	for {
 		select {
-		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-			if err != nil {
-				log.Println("write:", err)
-				return
-			}
 		case <-interrupt:
 			log.Println("interrupt")
 			// To cleanly close a connection, a client should send a close
