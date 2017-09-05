@@ -31,6 +31,18 @@ func NewBoard(t *m.TurnInfo) *Board {
 	return b
 }
 
+func rotate(arr []rune, len int) []rune {
+	res := []rune{}
+	for i := len - 1; i >= 0; i-- {
+		res = append(res, arr[i*len:i*len+len]...)
+	}
+	return res
+}
+
+func (b *Board) rotate(i int) int {
+	return (i % b.Width) + (b.Width-1-i/b.Width)*b.Width
+}
+
 func (b *Board) parse(t *m.TurnInfo) {
 	b.TurnInfo = t
 
@@ -39,6 +51,7 @@ func (b *Board) parse(t *m.TurnInfo) {
 
 	mapSize := len(walkLayer)
 	mapWidth := int(math.Sqrt(float64(mapSize)))
+
 	b.Size = mapSize
 	b.Width = mapWidth
 
@@ -48,7 +61,7 @@ func (b *Board) parse(t *m.TurnInfo) {
 	b.GoldList = []m.Point{}
 
 	for i := 0; i < mapSize; i++ {
-		switch walkLayer[i] {
+		switch walkLayer[b.rotate(i)] {
 		case '$':
 			b.GoldList = append(b.GoldList, m.NewPoint(i, b.Width))
 			fallthrough
@@ -59,7 +72,7 @@ func (b *Board) parse(t *m.TurnInfo) {
 
 	b.PlayersMap = m.NewMap(mapWidth)
 	for i := 0; i < mapSize; i++ {
-		switch playersLayer[i] {
+		switch playersLayer[b.rotate(i)] {
 		case '♥':
 			b.PlayersMap.Data[i] = 0
 		case '♦':
@@ -80,7 +93,7 @@ func (b *Board) parse(t *m.TurnInfo) {
 	for i := 0; i < mapSize; i++ {
 		value, _ := strconv.ParseInt(t.Forces[i*3:i*3+3], 36, 32)
 		if value != 0 {
-			b.ForcesMap.Data[i] = int(value)
+			b.ForcesMap.Data[b.rotate(i)] = int(value)
 		}
 	}
 

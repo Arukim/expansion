@@ -24,7 +24,8 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u, err := url.Parse("ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com")
+	//u, err := url.Parse("ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com")
+	u, err := url.Parse("ws://ecsc00104eef.epam.com:8080/codenjoy-contest/ws?user=nikita_smelov3@epam.com")
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +59,8 @@ func main() {
 
 			payload, _ := json.Marshal(move)
 			msg := fmt.Sprintf("message('%s')", payload)
-			log.Printf("My move is %v\n", msg)
+			log.Printf("%s\n", msg)
+			//time.Sleep(100 * time.Millisecond)
 			c.WriteMessage(websocket.TextMessage, []byte(msg))
 			//log.Printf("recv: %s", message)
 			//log.Printf("turn info: %+v", turnInfo)
