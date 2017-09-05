@@ -12,26 +12,21 @@ func NewGeneral() *General {
 	return &General{}
 }
 
-func (g *General) MakeTurn(b *Board) *m.Turn {
+func (g *General) MakeTurn(b *Board, t *m.Turn) {
 	g.board = b
 
 	move := g.findMove()
 
 	if move == nil {
-		return nil
+		return
 	}
 
-	return &m.Turn{
-		Increase: []m.Increase{
-			m.Increase{
-				Count:  10,
-				Region: move.Region,
-			},
-		},
-		Movements: []m.Movement{
-			*move,
-		},
-	}
+	t.Increase = append(t.Increase, m.Increase{
+		Count:  1000,
+		Region: move.Region,
+	})
+
+	t.Movements = append(t.Movements, *move)
 }
 
 func (g *General) findMove() *m.Movement {

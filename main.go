@@ -24,8 +24,8 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	//u, err := url.Parse("ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com")
-	u, err := url.Parse("ws://ecsc00104eef.epam.com:8080/codenjoy-contest/ws?user=nikita_smelov3@epam.com")
+	//u, err := url.Parse("ws://127.0.0.1:8080/codenjoy-contest/ws?user=3@a.com")
+	u, err := url.Parse("ws://ecsc00104eef.epam.com:8080/codenjoy-contest/ws?user=nikita_smelov2@epam.com")
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,10 @@ func main() {
 
 	done := make(chan struct{})
 
-	g := game.NewGeneral()
+	advisors := []game.Advisor{
+		game.NewExplorer(),
+		game.NewGeneral(),
+	}
 
 	go func() {
 		defer c.Close()
@@ -55,13 +58,12 @@ func main() {
 			turnInfo := models.TurnInfo{}
 			json.Unmarshal(message[6:], &turnInfo)
 			b := game.NewBoard(&turnInfo)
-			move := g.MakeTurn(b)
-			if move == nil {
-				log.Print("no turn")
-				continue
+			t := &models.Turn{}
+			for _, adv := range advisors {
+				adv.MakeTurn(b, t)
 			}
 
-			payload, _ := json.Marshal(move)
+			payload, _ := json.Marshal(t)
 			msg := fmt.Sprintf("message('%s')", payload)
 			log.Printf("%s\n", msg)
 			//time.Sleep(100 * time.Millisecond)
