@@ -112,11 +112,11 @@ func (b *Board) parse(t *m.TurnInfo) {
 
 func (b *Board) buildOutsideMap() {
 
-	points := []m.Point{}
+	points := make(map[m.Point]bool)
 
 	b.PlayersMap.Iterate(func(i, v int) {
 		if v == b.TurnInfo.MyColor {
-			points = append(points, m.NewPoint(i, b.Width))
+			points[m.NewPoint(i, b.Width)] = true
 		}
 	})
 
@@ -129,8 +129,8 @@ func (b *Board) buildOutsideMap() {
 	turn := 0
 	for len(points) > 0 {
 		turn++
-		changes := []m.Point{}
-		for _, f := range points {
+		changes := make(map[m.Point]bool)
+		for f := range points {
 			if b.OutsideMap.Get(f) == 0 {
 				b.OutsideMap.Set(f, turn)
 			}
@@ -139,17 +139,7 @@ func (b *Board) buildOutsideMap() {
 				moveV := b.OutsideMap.Data[pos]
 
 				if moveV == 0 {
-					// TODO : possible refactor, high memory / cpu
-					isUnique := true
-					for _, c := range changes {
-						if c.X == p.X && c.Y == p.Y {
-							isUnique = false
-							break
-						}
-					}
-					if isUnique {
-						changes = append(changes, p)
-					}
+					changes[p] = true
 				}
 
 				return true
@@ -175,18 +165,18 @@ func (b *Board) buildInsideMap() {
 		}
 	})
 
-	points := []m.Point{}
+	points := make(map[m.Point]bool)
 	b.InsideMap.Iterate(func(i, v int) {
 		if v == 1 {
-			points = append(points, m.NewPoint(i, b.Width))
+			points[m.NewPoint(i, b.Width)] = true
 		}
 	})
 
 	turn := 0
 	for len(points) > 0 {
 		turn++
-		changes := []m.Point{}
-		for _, f := range points {
+		changes := make(map[m.Point]bool)
+		for f := range points {
 			if b.InsideMap.Get(f) == 0 {
 				b.InsideMap.Set(f, turn)
 			}
@@ -195,16 +185,7 @@ func (b *Board) buildInsideMap() {
 				moveV := b.InsideMap.Data[pos]
 
 				if moveV == 0 {
-					isUnique := true
-					for _, c := range changes {
-						if c.X == p.X && c.Y == p.Y {
-							isUnique = false
-							break
-						}
-					}
-					if isUnique {
-						changes = append(changes, p)
-					}
+					changes[p] = true
 				}
 
 				return true
@@ -272,14 +253,16 @@ func (b *Board) GetDirectionFromTo(pa m.Point, pb m.Point) *m.Movement {
 		return v - 1
 	})
 
-	points := []m.Point{pb}
+	points := make(map[m.Point]bool)
+	points[pb] = true
+
 	found := false
 
 	turn := 0
 	for !found {
 		turn++
-		changes := []m.Point{}
-		for _, f := range points {
+		changes := make(map[m.Point]bool)
+		for f := range points {
 			if pathMap.Get(f) == 0 {
 				pathMap.Set(f, turn)
 			}
@@ -288,16 +271,7 @@ func (b *Board) GetDirectionFromTo(pa m.Point, pb m.Point) *m.Movement {
 				moveV := pathMap.Data[pos]
 
 				if moveV == 0 {
-					isUnique := true
-					for _, c := range changes {
-						if c.X == p.X && c.Y == p.Y {
-							isUnique = false
-							break
-						}
-					}
-					if isUnique {
-						changes = append(changes, p)
-					}
+					changes[p] = true
 				}
 
 				if p.X == pa.X && p.Y == pa.Y {
