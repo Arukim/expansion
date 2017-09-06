@@ -58,7 +58,10 @@ func main() {
 			turnInfo := models.TurnInfo{}
 			json.Unmarshal(message[6:], &turnInfo)
 			b := game.NewBoard(&turnInfo)
-			t := &models.Turn{}
+			t := &models.Turn{
+				Increase:  []models.Increase{},
+				Movements: []models.Movement{},
+			}
 			for _, adv := range advisors {
 				adv.MakeTurn(b, t)
 			}

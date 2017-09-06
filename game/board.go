@@ -47,7 +47,7 @@ func (b *Board) parse(t *m.TurnInfo) {
 	b.Size = mapSize
 	b.Width = mapWidth
 
-	fmt.Printf("Map size: %v, side: %v", mapSize, mapWidth)
+	//fmt.Printf("Map size: %v, side: %v", mapSize, mapWidth)
 
 	b.WalkMap = m.NewMap(mapWidth)
 	b.GoldList = []m.Point{}
@@ -89,12 +89,14 @@ func (b *Board) parse(t *m.TurnInfo) {
 		}
 	}
 
-	fmt.Println("Walk map")
-	b.WalkMap.Print()
-	fmt.Println("Players map")
-	b.PlayersMap.Print()
-	fmt.Println("Forces map")
-	b.ForcesMap.Print()
+	/*
+		fmt.Println("Walk map")
+		b.WalkMap.Print()
+		fmt.Println("Players map")
+		b.PlayersMap.Print()
+		fmt.Println("Forces map")
+		b.ForcesMap.Print()
+	*/
 }
 
 func (b *Board) buildMoveMap() {
@@ -133,8 +135,9 @@ func (b *Board) buildMoveMap() {
 		}
 		myForces = changes
 	}
-
-	b.MoveMap.Print()
+	/*
+		b.MoveMap.Print()
+	*/
 }
 
 func (b *Board) GetDistance(p m.Point) int {
