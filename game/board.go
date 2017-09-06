@@ -103,10 +103,10 @@ func (b *Board) parse(t *m.TurnInfo) {
 
 	// fmt.Println("Walk map")
 	// b.WalkMap.Print()
-	fmt.Println("Players map")
-	b.PlayersMap.Print()
-	fmt.Println("Forces map")
-	b.ForcesMap.Print()
+	// fmt.Println("Players map")
+	// b.PlayersMap.Print()
+	// fmt.Println("Forces map")
+	// b.ForcesMap.Print()
 
 }
 
@@ -223,7 +223,7 @@ func (b *Board) GetDirectionTo(p m.Point, pmap *m.Map) []m.Movement {
 	pos := pmap.Get(p)
 
 	if pos == 0 {
-		return nil
+		return []m.Movement{}
 	}
 
 	moves := []m.Movement{}
