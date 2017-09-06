@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"time"
 
 	"github.com/arukim/expansion/game"
@@ -19,6 +20,8 @@ import (
 var addr = flag.String("addr", "localhost:8080", "http service address")
 
 func main() {
+	memprofile := flag.String("memprofile", "", "write memory profile to this file")
+	urlStr := flag.String("url", "ws://ecsc00104eef.epam.com:8080/codenjoy-contest/ws?user=nikita_smelov3@epam.com", "server url")
 	flag.Parse()
 	log.SetFlags(0)
 
@@ -26,7 +29,7 @@ func main() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	//u, err := url.Parse("ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com")
-	u, err := url.Parse("ws://ecsc00104eef.epam.com:8080/codenjoy-contest/ws?user=nikita_smelov2@epam.com")
+	u, err := url.Parse(*urlStr)
 	if err != nil {
 		panic(err)
 	}
@@ -75,6 +78,14 @@ func main() {
 			c.WriteMessage(websocket.TextMessage, []byte(msg))
 			//log.Printf("recv: %s", message)
 			//log.Printf("turn info: %+v", turnInfo)
+			if *memprofile != "" {
+				f, err := os.Create(*memprofile)
+				if err != nil {
+					log.Fatal(err)
+				}
+				pprof.WriteHeapProfile(f)
+				f.Close()
+			}
 		}
 	}()
 

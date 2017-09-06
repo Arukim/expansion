@@ -1,6 +1,8 @@
 package advisors
 
 import (
+	"fmt"
+
 	linq "github.com/ahmetb/go-linq"
 	"github.com/arukim/expansion/game"
 	m "github.com/arukim/expansion/models"
@@ -18,21 +20,21 @@ func NewGeneral() *General {
 func (g *General) MakeTurn(b *game.Board, t *m.Turn) {
 	g.board = b
 
-	move := g.findMove()
+	moves := g.findMove()
 
-	if move == nil {
+	if len(moves) == 0 {
 		return
 	}
 
 	t.Increase = append(t.Increase, m.Increase{
 		Count:  1000,
-		Region: move.Region,
+		Region: moves[0].Region,
 	})
 
-	t.Movements = append(t.Movements, *move)
+	t.Movements = append(t.Movements, moves...)
 }
 
-func (g *General) findMove() *m.Movement {
+func (g *General) findMove() []m.Movement {
 	var b = g.board
 
 	p := m.Point{}
@@ -46,13 +48,27 @@ func (g *General) findMove() *m.Movement {
 			return b.GetDistance(x)
 		}).First().(m.Point)
 	} else {
-		return nil
+		return []m.Movement{}
 	}
 
-	move := b.GetDirectionTo(p, b.OutsideMap)
+	moves := b.GetDirectionTo(p, b.OutsideMap)
 
-	if move != nil {
-		move.Count = b.ForcesMap.Get(move.Region) - 1
+	// don't forget to move largest force!
+	maxForce := 0
+	maxForcePos := 0
+	for i, v := range b.ForcesMap.Data {
+		if v > maxForce {
+			maxForce = v
+			maxForcePos = i
+		}
 	}
-	return move
+
+	moves = append(moves, *b.GetDirectionFromTo(m.NewPoint(maxForcePos, b.Width), p))
+
+	for i := range moves {
+		moves[i].Count = b.ForcesMap.Get(moves[i].Region) - 1
+	}
+
+	fmt.Printf("General moves: %+v\n", moves)
+	return moves
 }

@@ -5,6 +5,8 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/ahmetb/go-linq"
+
 	m "github.com/arukim/expansion/models"
 )
 
@@ -92,14 +94,20 @@ func (b *Board) parse(t *m.TurnInfo) {
 		}
 	}
 
-	/*
-		fmt.Println("Walk map")
-		b.WalkMap.Print()
-		fmt.Println("Players map")
-		b.PlayersMap.Print()
-		fmt.Println("Forces map")
-		b.ForcesMap.Print()
-	*/
+	filteredGold := []m.Point{}
+	linq.From(b.GoldList).WhereT(func(p m.Point) bool {
+		return b.PlayersMap.Get(p) != t.MyColor
+	}).ToSlice(&filteredGold)
+
+	b.GoldList = filteredGold
+
+	// fmt.Println("Walk map")
+	// b.WalkMap.Print()
+	fmt.Println("Players map")
+	b.PlayersMap.Print()
+	fmt.Println("Forces map")
+	b.ForcesMap.Print()
+
 }
 
 func (b *Board) buildOutsideMap() {
@@ -112,7 +120,7 @@ func (b *Board) buildOutsideMap() {
 		}
 	})
 
-	fmt.Printf("My forces: %v\n", points)
+	fmt.Printf("My forces count: %v\n", len(points))
 
 	b.OutsideMap = b.WalkMap.Clone(func(v int) int {
 		return v - 1
@@ -131,7 +139,17 @@ func (b *Board) buildOutsideMap() {
 				moveV := b.OutsideMap.Data[pos]
 
 				if moveV == 0 {
-					changes = append(changes, p)
+					// TODO : possible refactor, high memory / cpu
+					isUnique := true
+					for _, c := range changes {
+						if c.X == p.X && c.Y == p.Y {
+							isUnique = false
+							break
+						}
+					}
+					if isUnique {
+						changes = append(changes, p)
+					}
 				}
 
 				return true
@@ -177,7 +195,16 @@ func (b *Board) buildInsideMap() {
 				moveV := b.InsideMap.Data[pos]
 
 				if moveV == 0 {
-					changes = append(changes, p)
+					isUnique := true
+					for _, c := range changes {
+						if c.X == p.X && c.Y == p.Y {
+							isUnique = false
+							break
+						}
+					}
+					if isUnique {
+						changes = append(changes, p)
+					}
 				}
 
 				return true
@@ -211,25 +238,22 @@ func (b *Board) GetDirection(p m.Point, pmap *m.Map) *m.Movement {
 	}
 }
 
-func (b *Board) GetDirectionTo(p m.Point, pmap *m.Map) *m.Movement {
+func (b *Board) GetDirectionTo(p m.Point, pmap *m.Map) []m.Movement {
 	pos := pmap.Get(p)
 
 	if pos == 0 {
 		return nil
 	}
 
-	if pos == 1 {
-		return nil
-	}
-
-	dir := ""
-	for dir == "" {
+	moves := []m.Movement{}
+	for len(moves) == 0 {
 		b.Neighbours(p, func(n_pos int, neighbour m.Point) bool {
 			//found
 			if pmap.Data[n_pos] == 1 {
-				dir = neighbour.GetDirection(p)
-				p = neighbour
-				return false
+				moves = append(moves, m.Movement{
+					Direction: neighbour.GetDirection(p),
+					Region:    neighbour,
+				})
 			} else if pmap.Data[n_pos] == pos-1 {
 				p = neighbour
 				pos--
@@ -239,10 +263,56 @@ func (b *Board) GetDirectionTo(p m.Point, pmap *m.Map) *m.Movement {
 		})
 	}
 
-	return &m.Movement{
-		Direction: dir,
-		Region:    p,
+	return moves
+}
+
+func (b *Board) GetDirectionFromTo(pa m.Point, pb m.Point) *m.Movement {
+
+	pathMap := b.WalkMap.Clone(func(v int) int {
+		return v - 1
+	})
+
+	points := []m.Point{pb}
+	found := false
+
+	turn := 0
+	for !found {
+		turn++
+		changes := []m.Point{}
+		for _, f := range points {
+			if pathMap.Get(f) == 0 {
+				pathMap.Set(f, turn)
+			}
+
+			b.Neighbours(f, func(pos int, p m.Point) bool {
+				moveV := pathMap.Data[pos]
+
+				if moveV == 0 {
+					isUnique := true
+					for _, c := range changes {
+						if c.X == p.X && c.Y == p.Y {
+							isUnique = false
+							break
+						}
+					}
+					if isUnique {
+						changes = append(changes, p)
+					}
+				}
+
+				if p.X == pa.X && p.Y == pa.Y {
+					pathMap.Set(p, turn+1)
+					found = true
+					return false
+				}
+
+				return true
+			})
+		}
+		points = changes
 	}
+	move := b.GetDirection(pa, pathMap)
+	return move
 }
 
 func (b *Board) Neighbours(p m.Point, f func(int, m.Point) bool) {
