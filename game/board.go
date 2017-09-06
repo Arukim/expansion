@@ -192,8 +192,27 @@ func (b *Board) GetDistance(p m.Point) int {
 	return b.WalkMap.Get(p) - 1
 }
 
-func (b *Board) GetDirection(p m.Point) *m.Movement {
-	pos := b.OutsideMap.Get(p)
+func (b *Board) GetDirection(p m.Point, pmap *m.Map) *m.Movement {
+	pos := pmap.Get(p)
+
+	dir := ""
+	b.Neighbours(p, func(n_pos int, neighbour m.Point) bool {
+		//found
+		if pmap.Data[n_pos] < pos && pmap.Data[n_pos] > 0 {
+			dir = p.GetDirection(neighbour)
+			return false
+		}
+		return true
+	})
+
+	return &m.Movement{
+		Direction: dir,
+		Region:    p,
+	}
+}
+
+func (b *Board) GetDirectionTo(p m.Point, pmap *m.Map) *m.Movement {
+	pos := pmap.Get(p)
 
 	if pos == 0 {
 		return nil
@@ -207,11 +226,11 @@ func (b *Board) GetDirection(p m.Point) *m.Movement {
 	for dir == "" {
 		b.Neighbours(p, func(n_pos int, neighbour m.Point) bool {
 			//found
-			if b.OutsideMap.Data[n_pos] == 1 {
+			if pmap.Data[n_pos] == 1 {
 				dir = neighbour.GetDirection(p)
 				p = neighbour
 				return false
-			} else if b.OutsideMap.Data[n_pos] == pos-1 {
+			} else if pmap.Data[n_pos] == pos-1 {
 				p = neighbour
 				pos--
 				return false

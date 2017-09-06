@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/arukim/expansion/game"
+	"github.com/arukim/expansion/game/advisors"
 	"github.com/arukim/expansion/models"
 	"github.com/gorilla/websocket"
 )
@@ -24,7 +25,7 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	//u, err := url.Parse("ws://127.0.0.1:8080/codenjoy-contest/ws?user=3@a.com")
+	//u, err := url.Parse("ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com")
 	u, err := url.Parse("ws://ecsc00104eef.epam.com:8080/codenjoy-contest/ws?user=nikita_smelov2@epam.com")
 	if err != nil {
 		panic(err)
@@ -40,9 +41,10 @@ func main() {
 
 	done := make(chan struct{})
 
-	advisors := []game.Advisor{
-		game.NewExplorer(),
-		game.NewGeneral(),
+	advisors := []advisors.Advisor{
+		advisors.NewExplorer(),
+		advisors.NewGeneral(),
+		advisors.NewInternal(),
 	}
 
 	go func() {
