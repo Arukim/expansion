@@ -12,7 +12,12 @@
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
+
+#binaries
 debug
-*.mprof
-*.mprof
 *.exe
+*.exe~
+
+#profiles
+*.mprof
+*.prof
