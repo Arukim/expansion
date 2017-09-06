@@ -15,7 +15,8 @@ type Board struct {
 
 	WalkMap    *m.Map
 	PlayersMap *m.Map
-	MoveMap    *m.Map
+	OutsideMap *m.Map
+	InsideMap  *m.Map
 	ForcesMap  *m.Map
 
 	GoldList []m.Point
@@ -26,7 +27,7 @@ func NewBoard(t *m.TurnInfo) *Board {
 	b := new(Board)
 
 	b.parse(t)
-	b.buildMoveMap()
+	b.buildOutsideMap()
 
 	return b
 }
@@ -99,41 +100,42 @@ func (b *Board) parse(t *m.TurnInfo) {
 	*/
 }
 
-func (b *Board) buildMoveMap() {
+func (b *Board) buildOutsideMap() {
 
-	myForces := []m.Point{}
+	points := []m.Point{}
 
 	b.PlayersMap.Iterate(func(i, v int) {
 		if v == b.TurnInfo.MyColor {
-			myForces = append(myForces, m.NewPoint(i, b.Width))
+			points = append(points, m.NewPoint(i, b.Width))
 		}
 	})
 
-	fmt.Printf("My forces: %v\n", myForces)
+	fmt.Printf("My forces: %v\n", points)
 
-	b.MoveMap = m.NewMap(b.Width)
+	b.OutsideMap = b.WalkMap.Clone(func(v int) int {
+		return v - 1
+	})
 
 	turn := 0
-	for len(myForces) > 0 {
+	for len(points) > 0 {
 		turn++
 		changes := []m.Point{}
-		for _, f := range myForces {
-			if b.MoveMap.Get(f) == 0 {
-				b.MoveMap.Set(f, turn)
+		for _, f := range points {
+			if b.OutsideMap.Get(f) == 0 {
+				b.OutsideMap.Set(f, turn)
 			}
 
 			b.Neighbours(f, func(pos int, p m.Point) bool {
-				moveV := b.MoveMap.Data[pos]
-				walkV := b.WalkMap.Data[pos]
+				moveV := b.OutsideMap.Data[pos]
 
-				if moveV == 0 && walkV == 1 {
+				if moveV == 0 {
 					changes = append(changes, p)
 				}
 
 				return true
 			})
 		}
-		myForces = changes
+		points = changes
 	}
 	/*
 		b.MoveMap.Print()
@@ -145,7 +147,7 @@ func (b *Board) GetDistance(p m.Point) int {
 }
 
 func (b *Board) GetDirection(p m.Point) *m.Movement {
-	pos := b.MoveMap.Get(p)
+	pos := b.OutsideMap.Get(p)
 
 	if pos == 0 {
 		return nil
@@ -159,11 +161,11 @@ func (b *Board) GetDirection(p m.Point) *m.Movement {
 	for dir == "" {
 		b.Neighbours(p, func(n_pos int, neighbour m.Point) bool {
 			//found
-			if b.MoveMap.Data[n_pos] == 1 {
+			if b.OutsideMap.Data[n_pos] == 1 {
 				dir = neighbour.GetDirection(p)
 				p = neighbour
 				return false
-			} else if b.MoveMap.Data[n_pos] == pos-1 {
+			} else if b.OutsideMap.Data[n_pos] == pos-1 {
 				p = neighbour
 				pos--
 				return false

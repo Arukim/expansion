@@ -19,6 +19,14 @@ func NewMap(width int) *Map {
 	return &m
 }
 
+func (m *Map) Clone(f func(int) int) *Map {
+	newMap := NewMap(m.Width)
+	for i := 0; i < m.Size; i++ {
+		newMap.Data[i] = f(m.Data[i])
+	}
+	return newMap
+}
+
 func (m *Map) Print() {
 	for i := m.Width - 1; i >= 0; i-- {
 		fmt.Printf("%v\n", m.Data[i*m.Width:i*m.Width+m.Width])

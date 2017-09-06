@@ -14,7 +14,7 @@ func NewExplorer() *Explorer {
 func (g *Explorer) MakeTurn(b *Board, t *m.Turn) {
 
 	for i := 0; i < b.Size; i++ {
-		if b.MoveMap.Data[i] == 2 {
+		if b.OutsideMap.Data[i] == 2 {
 			p1 := m.NewPoint(i, b.Width)
 			move := b.GetDirection(p1)
 			move.Count = 1
