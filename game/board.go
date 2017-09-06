@@ -23,11 +23,13 @@ type Board struct {
 	Enemies  []m.Point
 }
 
+// NewBoard instance creation
 func NewBoard(t *m.TurnInfo) *Board {
 	b := new(Board)
 
 	b.parse(t)
 	b.buildOutsideMap()
+	b.buildInsideMap()
 
 	return b
 }
@@ -140,6 +142,50 @@ func (b *Board) buildOutsideMap() {
 	/*
 		b.MoveMap.Print()
 	*/
+}
+
+func (b *Board) buildInsideMap() {
+
+	b.InsideMap = b.OutsideMap.Clone(func(v int) int {
+		switch v {
+		case 2:
+			return 1
+		case 1:
+			return 0
+		default:
+			return -1
+		}
+	})
+
+	points := []m.Point{}
+	b.InsideMap.Iterate(func(i, v int) {
+		if v == 1 {
+			points = append(points, m.NewPoint(i, b.Width))
+		}
+	})
+
+	turn := 0
+	for len(points) > 0 {
+		turn++
+		changes := []m.Point{}
+		for _, f := range points {
+			if b.InsideMap.Get(f) == 0 {
+				b.InsideMap.Set(f, turn)
+			}
+
+			b.Neighbours(f, func(pos int, p m.Point) bool {
+				moveV := b.InsideMap.Data[pos]
+
+				if moveV == 0 {
+					changes = append(changes, p)
+				}
+
+				return true
+			})
+		}
+		points = changes
+	}
+	//b.InsideMap.Print()
 }
 
 func (b *Board) GetDistance(p m.Point) int {
