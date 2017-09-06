@@ -41,11 +41,11 @@ func (g *General) findMove() []m.Movement {
 
 	if len(b.GoldList) > 0 {
 		p = linq.From(b.GoldList).OrderByT(func(x m.Point) int {
-			return b.GetDistance(x)
+			return b.OutsideMap.Get(x) - 1
 		}).First().(m.Point)
 	} else if len(b.Enemies) > 0 {
 		p = linq.From(b.Enemies).OrderByT(func(x m.Point) int {
-			return b.GetDistance(x)
+			return b.OutsideMap.Get(x) - 1
 		}).First().(m.Point)
 	} else {
 		return []m.Movement{}

@@ -19,7 +19,15 @@ func NewMap(width int) *Map {
 	return &m
 }
 
-func (m *Map) Clone(f func(int) int) *Map {
+func (m *Map) Clone() *Map {
+	newMap := NewMap(m.Width)
+	for i := 0; i < m.Size; i++ {
+		newMap.Data[i] = m.Data[i]
+	}
+	return newMap
+}
+
+func (m *Map) CloneF(f func(int) int) *Map {
 	newMap := NewMap(m.Width)
 	for i := 0; i < m.Size; i++ {
 		newMap.Data[i] = f(m.Data[i])

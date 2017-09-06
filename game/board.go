@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"strconv"
 
 	"github.com/ahmetb/go-linq"
@@ -40,6 +41,7 @@ func (b *Board) rotate(i int) int {
 	return (i % b.Width) + (b.Width-1-i/b.Width)*b.Width
 }
 
+// parse all data from server package
 func (b *Board) parse(t *m.TurnInfo) {
 	b.TurnInfo = t
 
@@ -63,7 +65,9 @@ func (b *Board) parse(t *m.TurnInfo) {
 			b.GoldList = append(b.GoldList, m.NewPoint(i, b.Width))
 			fallthrough
 		case '1', '2', '3', '4', '.':
-			b.WalkMap.Data[i] = 1
+			b.WalkMap.Data[i] = 0
+		default:
+			b.WalkMap.Data[i] = -1
 		}
 	}
 
@@ -94,6 +98,7 @@ func (b *Board) parse(t *m.TurnInfo) {
 		}
 	}
 
+	// Remove my gold from map
 	filteredGold := []m.Point{}
 	linq.From(b.GoldList).WhereT(func(p m.Point) bool {
 		return b.PlayersMap.Get(p) != t.MyColor
@@ -110,33 +115,18 @@ func (b *Board) parse(t *m.TurnInfo) {
 
 }
 
-func (b *Board) buildOutsideMap() {
-
-	points := make(map[m.Point]bool)
-
-	b.PlayersMap.Iterate(func(i, v int) {
-		if v == b.TurnInfo.MyColor {
-			points[m.NewPoint(i, b.Width)] = true
-		}
-	})
-
-	fmt.Printf("My forces count: %v\n", len(points))
-
-	b.OutsideMap = b.WalkMap.Clone(func(v int) int {
-		return v - 1
-	})
-
+func (b *Board) floodFill(pmap *m.Map, points map[m.Point]bool) {
 	turn := 0
 	for len(points) > 0 {
 		turn++
 		changes := make(map[m.Point]bool)
 		for f := range points {
-			if b.OutsideMap.Get(f) == 0 {
-				b.OutsideMap.Set(f, turn)
+			if pmap.Get(f) == 0 {
+				pmap.Set(f, turn)
 			}
 
 			b.Neighbours(f, func(pos int, p m.Point) bool {
-				moveV := b.OutsideMap.Data[pos]
+				moveV := pmap.Data[pos]
 
 				if moveV == 0 {
 					changes[p] = true
@@ -147,14 +137,37 @@ func (b *Board) buildOutsideMap() {
 		}
 		points = changes
 	}
+}
+
+// build-up map of outside territories
+// 1 - my territory, -1 not passable, >2 - outside territory
+func (b *Board) buildOutsideMap() {
+
+	points := make(map[m.Point]bool)
+
+	// fill map with current territory
+	b.PlayersMap.Iterate(func(i, v int) {
+		if v == b.TurnInfo.MyColor {
+			points[m.NewPoint(i, b.Width)] = true
+		}
+	})
+
+	fmt.Printf("My forces count: %v\n", len(points))
+
+	//  start with walk map
+	b.OutsideMap = b.WalkMap.Clone()
+
+	b.floodFill(b.OutsideMap, points)
 	/*
 		b.MoveMap.Print()
 	*/
 }
 
+// build-up map of inside territories
+// 1 - external border, >1 - internal territory. -1 - external territory
 func (b *Board) buildInsideMap() {
 
-	b.InsideMap = b.OutsideMap.Clone(func(v int) int {
+	b.InsideMap = b.OutsideMap.CloneF(func(v int) int {
 		switch v {
 		case 2:
 			return 1
@@ -172,46 +185,24 @@ func (b *Board) buildInsideMap() {
 		}
 	})
 
-	turn := 0
-	for len(points) > 0 {
-		turn++
-		changes := make(map[m.Point]bool)
-		for f := range points {
-			if b.InsideMap.Get(f) == 0 {
-				b.InsideMap.Set(f, turn)
-			}
-
-			b.Neighbours(f, func(pos int, p m.Point) bool {
-				moveV := b.InsideMap.Data[pos]
-
-				if moveV == 0 {
-					changes[p] = true
-				}
-
-				return true
-			})
-		}
-		points = changes
-	}
+	b.floodFill(b.InsideMap, points)
 	//b.InsideMap.Print()
 }
 
-func (b *Board) GetDistance(p m.Point) int {
-	return b.WalkMap.Get(p) - 1
-}
-
+// GetDirection finds single turn towards target using existing path-map
 func (b *Board) GetDirection(p m.Point, pmap *m.Map) *m.Movement {
 	pos := pmap.Get(p)
+	dirs := []string{}
 
-	dir := ""
 	b.Neighbours(p, func(n_pos int, neighbour m.Point) bool {
 		//found
 		if pmap.Data[n_pos] < pos && pmap.Data[n_pos] > 0 {
-			dir = p.GetDirection(neighbour)
-			return false
+			dirs = append(dirs, p.GetDirection(neighbour))
 		}
 		return true
 	})
+
+	dir := dirs[rand.Intn(len(dirs))]
 
 	return &m.Movement{
 		Direction: dir,
@@ -219,6 +210,8 @@ func (b *Board) GetDirection(p m.Point, pmap *m.Map) *m.Movement {
 	}
 }
 
+// GetDirectionTo search direction to point using existing path-map.
+// If there are several last turn - will return slice of turns
 func (b *Board) GetDirectionTo(p m.Point, pmap *m.Map) []m.Movement {
 	pos := pmap.Get(p)
 
@@ -247,11 +240,10 @@ func (b *Board) GetDirectionTo(p m.Point, pmap *m.Map) []m.Movement {
 	return moves
 }
 
+// GetDirectionFromTo find path from A to B, creates new temp path map
 func (b *Board) GetDirectionFromTo(pa m.Point, pb m.Point) *m.Movement {
 
-	pathMap := b.WalkMap.Clone(func(v int) int {
-		return v - 1
-	})
+	pathMap := b.WalkMap.Clone()
 
 	points := make(map[m.Point]bool)
 	points[pb] = true
@@ -289,6 +281,8 @@ func (b *Board) GetDirectionFromTo(pa m.Point, pb m.Point) *m.Movement {
 	return move
 }
 
+// Neighbours enumerates all neighbours cells with f(func)
+// if func failed - returns
 func (b *Board) Neighbours(p m.Point, f func(int, m.Point) bool) {
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
