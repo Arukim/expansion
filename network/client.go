@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"time"
 
-	"github.com/arukim/expansion/game"
-	"github.com/arukim/expansion/game/advisors"
 	"github.com/arukim/expansion/models"
+	"github.com/arukim/expansion/player"
 	"github.com/gorilla/websocket"
 )
 
@@ -39,12 +37,7 @@ func (c *Client) run() {
 		log.Fatal("dial:", err)
 	}
 
-	advisors := []advisors.Advisor{
-		advisors.NewExplorer(),
-		advisors.NewGeneral(),
-		advisors.NewInternal(),
-	}
-
+	player := player.NewPlayer()
 	go func() {
 		defer conn.Close()
 		for {
@@ -56,16 +49,8 @@ func (c *Client) run() {
 
 			turnInfo := models.TurnInfo{}
 			json.Unmarshal(message[6:], &turnInfo)
-			b := game.NewBoard(&turnInfo)
-			t := &models.Turn{
-				Increase:  []models.Increase{},
-				Movements: []models.Movement{},
-			}
-			for i, adv := range advisors {
-				fmt.Printf("adv %v\n", i)
-				time.Sleep(100 * time.Millisecond)
-				adv.MakeTurn(b, t)
-			}
+
+			t := player.MakeTurn(&turnInfo)
 
 			payload, _ := json.Marshal(t)
 			msg := fmt.Sprintf("message('%s')", payload)
