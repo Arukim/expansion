@@ -11,10 +11,12 @@ import (
 const totalPlayers = 4
 
 type Board struct {
-	TurnInfo      *m.TurnInfo
-	Size          int
-	Width         int
-	MyForcesCount int
+	TurnInfo *m.TurnInfo
+	Size     int
+	Width    int
+
+	ForcesAvailable int
+	Turn            int
 
 	WalkMap    *m.Map
 	PlayersMap *m.Map
@@ -25,6 +27,8 @@ type Board struct {
 	MinesList   []m.Point
 	Enemies     []m.Point
 	PlayerInfos []m.PlayerInfo
+
+	MyInfo *m.PlayerInfo
 }
 
 // NewBoard instance creation
@@ -57,6 +61,8 @@ func (b *Board) parse(t *m.TurnInfo) {
 
 	b.Size = mapSize
 	b.Width = mapWidth
+	b.ForcesAvailable = t.Available
+	b.Turn = t.Tick
 
 	//fmt.Printf("Map size: %v, side: %v", mapSize, mapWidth)
 
@@ -154,9 +160,9 @@ func (b *Board) fillPlayersInfos() {
 		forceCount := b.ForcesMap.Data[i]
 		p.TerritorySize++
 
-		p.TotalForces += forceCount
+		p.ForcesTotal += forceCount
 		if forceCount > 0 {
-			p.ActiveForces += forceCount - 1
+			p.ForcesFree += forceCount - 1
 			p.Forces[pos] = forceCount
 		}
 	})
@@ -164,13 +170,14 @@ func (b *Board) fillPlayersInfos() {
 	for _, p := range b.MinesList {
 		pNum := b.PlayersMap.Get(p)
 		if pNum == -1 {
-			return
+			continue
 		}
 
 		b.PlayerInfos[pNum].MinesCount++
 		b.PlayerInfos[pNum].Mines[p] = true
 	}
 
+	b.MyInfo = &b.PlayerInfos[b.TurnInfo.MyColor]
 	//fmt.Printf("playersInfos: %+v\n", b.PlayerInfos)
 }
 
@@ -185,8 +192,6 @@ func (b *Board) buildOutsideMap() {
 			points[m.NewPoint(i, b.Width)] = true
 		}
 	})
-
-	b.MyForcesCount = len(points)
 
 	//  start with walk map
 	b.OutsideMap = b.WalkMap.Clone()

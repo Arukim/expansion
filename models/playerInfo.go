@@ -1,9 +1,9 @@
 package models
 
 type PlayerInfo struct {
-	ActiveForces  int
+	ForcesFree    int
 	TerritorySize int
-	TotalForces   int
+	ForcesTotal   int
 	MinesCount    int
 
 	Mines  map[Point]bool

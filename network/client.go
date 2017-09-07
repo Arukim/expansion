@@ -13,10 +13,11 @@ import (
 
 type Client struct {
 	Url string
+	Id  int
 }
 
-func NewClient(url string) *Client {
-	c := &Client{Url: url}
+func NewClient(id int, url string) *Client {
+	c := &Client{Url: url, Id: id}
 
 	go c.run()
 
@@ -37,7 +38,7 @@ func (c *Client) run() {
 		log.Fatal("dial:", err)
 	}
 
-	player := player.NewPlayer()
+	player := player.NewPlayer(c.Id)
 	go func() {
 		defer conn.Close()
 		for {
@@ -48,6 +49,7 @@ func (c *Client) run() {
 			}
 
 			turnInfo := models.TurnInfo{}
+			//fmt.Printf("%s", message)
 			json.Unmarshal(message[6:], &turnInfo)
 
 			t := player.MakeTurn(&turnInfo)

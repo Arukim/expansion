@@ -24,8 +24,8 @@ func main() {
 
 	urls := strings.Split(*urlStr, " ")
 
-	for _, url := range urls {
-		network.NewClient(url)
+	for id, url := range urls {
+		network.NewClient(id, url)
 	}
 
 	if *memprofile != "" {

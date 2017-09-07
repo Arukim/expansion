@@ -9,12 +9,13 @@ import (
 )
 
 type Player struct {
+	id       int
 	advisors []advisors.Advisor
 }
 
 // NewPlayer const
-func NewPlayer() *Player {
-	p := &Player{}
+func NewPlayer(id int) *Player {
+	p := &Player{id: id}
 
 	p.advisors = []advisors.Advisor{
 		advisors.NewExplorer(),
@@ -34,13 +35,15 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 		Movements: []models.Movement{},
 	}
 
-	if b.MyForcesCount > 0 {
+	fmt.Printf("P%d space: %d freeForces: %d\n", p.id, b.MyInfo.TerritorySize, b.MyInfo.ForcesFree)
+	if b.MyInfo.ForcesTotal > 0 {
 		for _, adv := range p.advisors {
 			adv.MakeTurn(b, playerTurn)
 		}
 	} else {
-		fmt.Printf("I lost")
+		fmt.Printf("I've done")
 	}
-	fmt.Printf("player turn is %+v\n", playerTurn)
+	fmt.Printf("P%d making turn\n", p.id)
+	//fmt.Printf("player turn is %+v\n", playerTurn)
 	return playerTurn
 }
