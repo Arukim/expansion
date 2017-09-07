@@ -1,15 +1,14 @@
 package game
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"strconv"
 
-	"github.com/ahmetb/go-linq"
-
 	m "github.com/arukim/expansion/models"
 )
+
+const totalPlayers = 4
 
 type Board struct {
 	TurnInfo      *m.TurnInfo
@@ -23,15 +22,19 @@ type Board struct {
 	InsideMap  *m.Map
 	ForcesMap  *m.Map
 
-	GoldList []m.Point
-	Enemies  []m.Point
+	MinesList   []m.Point
+	Enemies     []m.Point
+	PlayerInfos []m.PlayerInfo
 }
 
 // NewBoard instance creation
 func NewBoard(t *m.TurnInfo) *Board {
 	b := new(Board)
 
+	b.PlayerInfos = make([]m.PlayerInfo, 4)
+
 	b.parse(t)
+	b.fillPlayersInfos()
 	b.buildOutsideMap()
 	b.buildInsideMap()
 
@@ -58,12 +61,12 @@ func (b *Board) parse(t *m.TurnInfo) {
 	//fmt.Printf("Map size: %v, side: %v", mapSize, mapWidth)
 
 	b.WalkMap = m.NewMap(mapWidth)
-	b.GoldList = []m.Point{}
+	b.MinesList = []m.Point{}
 
 	for i := 0; i < mapSize; i++ {
 		switch walkLayer[b.rotate(i)] {
 		case '$':
-			b.GoldList = append(b.GoldList, m.NewPoint(i, b.Width))
+			b.MinesList = append(b.MinesList, m.NewPoint(i, b.Width))
 			fallthrough
 		case '1', '2', '3', '4', '.':
 			b.WalkMap.Data[i] = 0
@@ -98,15 +101,6 @@ func (b *Board) parse(t *m.TurnInfo) {
 			b.ForcesMap.Data[b.rotate(i)] = int(value)
 		}
 	}
-
-	// Remove my gold from map
-	filteredGold := []m.Point{}
-	linq.From(b.GoldList).WhereT(func(p m.Point) bool {
-		return b.PlayersMap.Get(p) != t.MyColor
-	}).ToSlice(&filteredGold)
-
-	b.GoldList = filteredGold
-
 	// fmt.Println("Walk map")
 	// b.WalkMap.Print()
 	// fmt.Println("Players map")
@@ -140,13 +134,52 @@ func (b *Board) floodFill(pmap *m.Map, points map[m.Point]bool) {
 	}
 }
 
+func (b *Board) fillPlayersInfos() {
+
+	for i := range b.PlayerInfos {
+		p := &b.PlayerInfos[i]
+		p.Mines = make(map[m.Point]bool)
+		p.Forces = make(map[m.Point]int)
+	}
+
+	// fill map with current territory
+	b.PlayersMap.Iterate(func(i, v int) {
+		if v == -1 {
+			return
+		}
+
+		p := &b.PlayerInfos[v]
+		pos := m.NewPoint(i, b.Size)
+
+		forceCount := b.ForcesMap.Data[i]
+		p.TerritorySize++
+
+		p.TotalForces += forceCount
+		if forceCount > 0 {
+			p.ActiveForces += forceCount - 1
+			p.Forces[pos] = forceCount
+		}
+	})
+
+	for _, p := range b.MinesList {
+		pNum := b.PlayersMap.Get(p)
+		if pNum == -1 {
+			return
+		}
+
+		b.PlayerInfos[pNum].MinesCount++
+		b.PlayerInfos[pNum].Mines[p] = true
+	}
+
+	//fmt.Printf("playersInfos: %+v\n", b.PlayerInfos)
+}
+
 // build-up map of outside territories
 // 1 - my territory, -1 not passable, >2 - outside territory
 func (b *Board) buildOutsideMap() {
 
 	points := make(map[m.Point]bool)
 
-	// fill map with current territory
 	b.PlayersMap.Iterate(func(i, v int) {
 		if v == b.TurnInfo.MyColor {
 			points[m.NewPoint(i, b.Width)] = true
@@ -154,7 +187,6 @@ func (b *Board) buildOutsideMap() {
 	})
 
 	b.MyForcesCount = len(points)
-	fmt.Printf("My forces count: %v\n", b.MyForcesCount)
 
 	//  start with walk map
 	b.OutsideMap = b.WalkMap.Clone()
