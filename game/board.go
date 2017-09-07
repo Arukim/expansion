@@ -12,9 +12,10 @@ import (
 )
 
 type Board struct {
-	TurnInfo *m.TurnInfo
-	Size     int
-	Width    int
+	TurnInfo      *m.TurnInfo
+	Size          int
+	Width         int
+	MyForcesCount int
 
 	WalkMap    *m.Map
 	PlayersMap *m.Map
@@ -152,7 +153,8 @@ func (b *Board) buildOutsideMap() {
 		}
 	})
 
-	fmt.Printf("My forces count: %v\n", len(points))
+	b.MyForcesCount = len(points)
+	fmt.Printf("My forces count: %v\n", b.MyForcesCount)
 
 	//  start with walk map
 	b.OutsideMap = b.WalkMap.Clone()

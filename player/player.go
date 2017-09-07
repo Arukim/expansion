@@ -34,10 +34,13 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 		Movements: []models.Movement{},
 	}
 
-	for _, adv := range p.advisors {
-		adv.MakeTurn(b, playerTurn)
+	if b.MyForcesCount > 0 {
+		for _, adv := range p.advisors {
+			adv.MakeTurn(b, playerTurn)
+		}
+	} else {
+		fmt.Printf("I lost")
 	}
-
 	fmt.Printf("player turn is %+v\n", playerTurn)
 	return playerTurn
 }
