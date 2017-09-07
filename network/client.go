@@ -54,7 +54,7 @@ func (c *Client) run() {
 
 			payload, _ := json.Marshal(t)
 			msg := fmt.Sprintf("message('%s')", payload)
-			log.Printf("%s\n", msg)
+			//log.Printf("%s\n", msg)
 			//time.Sleep(100 * time.Millisecond)
 			conn.WriteMessage(websocket.TextMessage, []byte(msg))
 			//log.Printf("recv: %s", message)

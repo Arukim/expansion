@@ -13,12 +13,11 @@ import (
 	"github.com/arukim/expansion/network"
 )
 
-var addr = flag.String("addr", "localhost:8080", "http service address")
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var memprofile = flag.String("memprofile", "", "write memory profile to this file")
+var urlStr = flag.String("url", "ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com", "server url")
 
 func main() {
-	urlStr := flag.String("url", "ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com", "server url")
 	//"ws://ecsc00104eef.epam.com:8080/codenjoy-contest/ws?user=nikita_smelov3@epam.com"
 	flag.Parse()
 	log.SetFlags(0)

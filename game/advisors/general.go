@@ -1,8 +1,6 @@
 package advisors
 
 import (
-	"fmt"
-
 	linq "github.com/ahmetb/go-linq"
 	"github.com/arukim/expansion/game"
 	m "github.com/arukim/expansion/models"
@@ -57,7 +55,8 @@ func (g *General) findMove() []m.Movement {
 	maxForce := 0
 	maxForcePos := 0
 	for i, v := range b.ForcesMap.Data {
-		if v > maxForce {
+		// check only my force
+		if b.PlayersMap.Data[i] == b.TurnInfo.MyColor && v > maxForce {
 			maxForce = v
 			maxForcePos = i
 		}
@@ -69,6 +68,6 @@ func (g *General) findMove() []m.Movement {
 		moves[i].Count = b.ForcesMap.Get(moves[i].Region) - 1
 	}
 
-	fmt.Printf("General moves: %+v\n", moves)
+	//fmt.Printf("General moves: %+v\n", moves)
 	return moves
 }

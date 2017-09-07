@@ -2,7 +2,6 @@ package player
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/arukim/expansion/game"
 	"github.com/arukim/expansion/game/advisors"
@@ -35,11 +34,10 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 		Movements: []models.Movement{},
 	}
 
-	for i, adv := range p.advisors {
-		fmt.Printf("adv %v\n", i)
-		time.Sleep(100 * time.Millisecond)
+	for _, adv := range p.advisors {
 		adv.MakeTurn(b, playerTurn)
 	}
 
+	fmt.Printf("player turn is %+v\n", playerTurn)
 	return playerTurn
 }
