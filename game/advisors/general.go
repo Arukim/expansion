@@ -37,8 +37,10 @@ func (g *General) findMove() []m.Movement {
 
 	p := m.Point{}
 
-	if len(b.MinesList) > 0 {
-		p = linq.From(b.MinesList).OrderByT(func(x m.Point) int {
+	if len(b.FreeMines) > 0 {
+		p = linq.From(b.FreeMines).SelectT(func(x linq.KeyValue) m.Point {
+			return x.Key.(m.Point)
+		}).OrderByT(func(x m.Point) int {
 			return b.OutsideMap.Get(x) - 1
 		}).First().(m.Point)
 	} else if len(b.Enemies) > 0 {
@@ -66,6 +68,7 @@ func (g *General) findMove() []m.Movement {
 
 	for i := range moves {
 		moves[i].Count = b.ForcesMap.Get(moves[i].Region) - 1
+		b.ForcesMap.Data[moves[i].Region.GetPos(b.Width)] -= moves[i].Count
 	}
 
 	//fmt.Printf("General moves: %+v\n", moves)

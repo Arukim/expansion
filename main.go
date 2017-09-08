@@ -44,15 +44,19 @@ func main() {
 
 	if *cpuprofile != "" {
 		go func() {
-			f, err := os.Create(*cpuprofile)
-			if err != nil {
-				log.Fatal(err)
+			for {
+				f, err := os.Create(*cpuprofile)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				fmt.Println("CPU profile start")
+				pprof.StartCPUProfile(f)
+				time.Sleep(time.Second * 30)
+				pprof.StopCPUProfile()
+				fmt.Println("CPU profile done")
+				f.Close()
 			}
-			fmt.Println("CPU profile start")
-			pprof.StartCPUProfile(f)
-			time.Sleep(time.Second * 30)
-			pprof.StopCPUProfile()
-			fmt.Println("CPU profile done")
 		}()
 	}
 

@@ -48,14 +48,19 @@ func (c *Client) run() {
 				return
 			}
 
+			msg := ""
+
 			turnInfo := models.TurnInfo{}
 			//fmt.Printf("%s", message)
 			json.Unmarshal(message[6:], &turnInfo)
 
 			t := player.MakeTurn(&turnInfo)
-
-			payload, _ := json.Marshal(t)
-			msg := fmt.Sprintf("message('%s')", payload)
+			if t != nil {
+				payload, _ := json.Marshal(t)
+				msg = fmt.Sprintf("message('%s')", payload)
+			} else {
+				msg = "act(0)"
+			}
 			//log.Printf("%s\n", msg)
 			//time.Sleep(100 * time.Millisecond)
 			conn.WriteMessage(websocket.TextMessage, []byte(msg))
