@@ -47,6 +47,18 @@ func (m *Map) Iterate(f func(int, int)) {
 	}
 }
 
+func (m *Map) IterateP(f func(Point, int)) {
+	for i := 0; i < m.Size; i++ {
+		f(NewPoint(i, m.Width), m.Data[i])
+	}
+}
+
+func (m *Map) Modify(f func(p Point, v int) int) {
+	for i := 0; i < m.Size; i++ {
+		m.Data[i] = f(NewPoint(i, m.Width), m.Data[i])
+	}
+}
+
 func (m *Map) Get(p Point) int {
 	return m.Data[p.GetPos(m.Width)]
 }

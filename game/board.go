@@ -26,8 +26,8 @@ type Board struct {
 	ForcesMap  *m.Map
 
 	MinesList   []m.Point
-	Enemies     []m.Point
 	PlayerInfos []m.PlayerInfo
+	Enemies     map[m.Point]bool
 	FreeMines   map[m.Point]bool
 
 	MyInfo *m.PlayerInfo
@@ -39,6 +39,7 @@ func NewBoard(t *m.TurnInfo) *Board {
 
 	b.PlayerInfos = make([]m.PlayerInfo, 4)
 	b.FreeMines = make(map[m.Point]bool)
+	b.Enemies = make(map[m.Point]bool)
 
 	b.parse(t)
 	b.fillPlayersInfos()

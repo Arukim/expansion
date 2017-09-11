@@ -19,6 +19,7 @@ func NewPlayer(id int) *Player {
 	p := &Player{id: id}
 
 	p.advisors = []advisors.Advisor{
+		advisors.NewEarlyExplorer(),
 		advisors.NewExplorer(),
 		advisors.NewGeneral(),
 		advisors.NewInternal(),

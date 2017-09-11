@@ -5,16 +5,16 @@ type Point struct {
 	Y int `json:"y"`
 }
 
-func NewPoint(pos int, size int) Point {
-	return Point{X: pos % size, Y: pos / size}
+func NewPoint(pos int, width int) Point {
+	return Point{X: pos % width, Y: pos / width}
 }
 
 func (p *Point) Add(x, y int) Point {
 	return Point{X: p.X + x, Y: p.Y + y}
 }
 
-func (p *Point) GetPos(size int) int {
-	return p.X + p.Y*size
+func (p *Point) GetPos(width int) int {
+	return p.X + p.Y*width
 }
 
 func (p1 *Point) GetDirection(p2 Point) string {
