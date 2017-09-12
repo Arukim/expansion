@@ -59,6 +59,18 @@ func (m *Map) Modify(f func(p Point, v int) int) {
 	}
 }
 
+func (m *Map) Filter(f func(p Point, v int) bool) map[Point]int {
+	res := make(map[Point]int)
+	for i := 0; i < m.Size; i++ {
+		p := NewPoint(i, m.Width)
+		v := m.Data[i]
+		if f(p, v) {
+			res[p] = v
+		}
+	}
+	return res
+}
+
 func (m *Map) Get(p Point) int {
 	return m.Data[p.GetPos(m.Width)]
 }

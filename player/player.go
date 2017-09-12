@@ -10,16 +10,21 @@ import (
 )
 
 type Player struct {
-	id       int
-	advisors []advisors.Advisor
+	id            int
+	earlyAdvisors []advisors.Advisor
+	lateAdvisors  []advisors.Advisor
 }
 
 // NewPlayer const
 func NewPlayer(id int) *Player {
 	p := &Player{id: id}
 
-	p.advisors = []advisors.Advisor{
+	p.earlyAdvisors = []advisors.Advisor{
 		advisors.NewEarlyExplorer(),
+		advisors.NewInternal(),
+	}
+
+	p.lateAdvisors = []advisors.Advisor{
 		advisors.NewExplorer(),
 		advisors.NewGeneral(),
 		advisors.NewInternal(),
@@ -42,11 +47,20 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 		Movements: []models.Movement{},
 	}
 
-	fmt.Printf("P%d inc: %d space: %d freeForces: %d\n", p.id, b.ForcesAvailable, b.MyInfo.TerritorySize, b.MyInfo.ForcesFree)
+	fmt.Printf("P%d inc: %d space: %d freeForces: %d occup: %f\n", p.id, b.ForcesAvailable, b.MyInfo.TerritorySize, b.MyInfo.ForcesFree, b.OccupationRate)
 	if b.MyInfo.ForcesTotal > 0 {
-		for _, adv := range p.advisors {
+		var advSet []advisors.Advisor
+		// TODO: add more checks, enclave territory check, free mines check.
+		if b.OccupationRate < 0.75 {
+			advSet = p.earlyAdvisors
+		} else {
+			advSet = p.lateAdvisors
+		}
+
+		for _, adv := range advSet {
 			adv.MakeTurn(b, playerTurn)
 		}
+
 	} else {
 		fmt.Printf("I've done")
 	}

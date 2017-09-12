@@ -18,6 +18,8 @@ type Board struct {
 	ForcesAvailable int
 	Turn            int
 	TotalWalkCells  int
+	TotalFreeCells  int
+	OccupationRate  float64
 
 	WalkMap    *m.Map
 	PlayersMap *m.Map
@@ -101,9 +103,14 @@ func (b *Board) parse(t *m.TurnInfo) {
 			b.PlayersMap.Data[i] = -1
 		}
 		if b.PlayersMap.Data[i] != -1 && b.PlayersMap.Data[i] != t.MyColor {
-			b.Enemies = append(b.Enemies, m.NewPoint(i, b.Width))
+			b.Enemies[m.NewPoint(i, b.Width)] = true
+		}
+		if b.PlayersMap.Data[i] == -1 && b.WalkMap.Data[i] == 0 {
+			b.TotalFreeCells++
 		}
 	}
+
+	b.OccupationRate = float64(b.TotalWalkCells-b.TotalFreeCells) / float64(b.TotalWalkCells)
 
 	b.ForcesMap = m.NewMap(mapWidth)
 	for i := 0; i < mapSize; i++ {

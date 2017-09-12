@@ -42,7 +42,7 @@ func (p1 *Point) GetDirection(p2 Point) string {
 		} else if diffY == -1 {
 			return "DOWN"
 		} else {
-			return "STAY"
+			return "NONE"
 		}
 	}
 }

@@ -26,7 +26,7 @@
             "program": "${workspaceRoot}",
             "env": {},
             "args": ["-url",
-                "ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com ws://127.0.0.1:8080/codenjoy-contest/ws?user=2@a.com"],
+                "ws://127.0.0.1:8080/codenjoy-contest/ws?user=1@a.com"],
             "showLog": true
         }
     ]
