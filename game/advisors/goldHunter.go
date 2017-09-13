@@ -61,7 +61,7 @@ findTarget:
 	move := *b.GetDirectionFromTo(from, *gh.target)
 
 	forces := b.ForcesMap.Get(from)
-	dist := b.OutsideMap.Get(*gh.target)
+	dist := b.OutsideMap.Get(*gh.target) - 1
 
 	if dist > forces {
 		move.Count = forces
