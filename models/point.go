@@ -46,3 +46,28 @@ func (p1 *Point) GetDirection(p2 Point) string {
 		}
 	}
 }
+
+func (p1 *Point) Move(dir string) {
+	switch dir {
+	case "LEFT":
+		p1.X--
+	case "RIGHT":
+		p1.X++
+	case "UP":
+		p1.Y++
+	case "DOWN":
+		p1.Y--
+	case "LEFT_DOWN":
+		p1.X--
+		p1.Y--
+	case "RIGHT_DOWN":
+		p1.X++
+		p1.Y--
+	case "RIGHT_UP":
+		p1.X++
+		p1.Y++
+	case "LEFT_UP":
+		p1.X--
+		p1.Y++
+	}
+}

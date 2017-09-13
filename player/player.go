@@ -58,6 +58,7 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 	}
 	if b.Turn == 0 {
 		p.NewGame()
+		log.Printf("total mines is %d\n", b.TotalMines)
 	}
 
 	if b.TotalWalkCells == b.MyInfo.TerritorySize {

@@ -210,6 +210,7 @@ func (g *EarlyExplorer) MakeTurn(b *game.Board, t *m.Turn) {
 		return m.Movement{Count: v, Region: move.Point, Direction: move.Direction}
 	}).ToSlice(&mov)
 
+	//log.Printf("EE: moves %+v\n", mov)
 	t.Increase = append(t.Increase, inc...)
 	t.Movements = append(t.Movements, mov...)
 }

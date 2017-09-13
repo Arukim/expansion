@@ -11,7 +11,7 @@ import (
 // GoldHunter is advisor with main focus to get gold mines ASAP
 type GoldHunter struct {
 	target   *m.Point
-	forces   pointEx
+	forces   *m.Point
 	finished bool
 }
 
@@ -47,20 +47,23 @@ findTarget:
 		goto findTarget
 	}
 
-	maxForce := 0
-	maxForcePos := 0
-	for i, v := range b.ForcesMap.Data {
-		// check only my force
-		if b.PlayersMap.Data[i] == b.TurnInfo.MyColor && v > maxForce {
-			maxForce = v
-			maxForcePos = i
+	if gh.forces == nil {
+		maxForce := 0
+		maxForcePos := 0
+		for i, v := range b.ForcesMap.Data {
+			// check only my force
+			if b.PlayersMap.Data[i] == b.TurnInfo.MyColor && v > maxForce {
+				maxForce = v
+				maxForcePos = i
+			}
 		}
+		from := m.NewPoint(maxForcePos, b.Width)
+		gh.forces = &from
 	}
 
-	from := m.NewPoint(maxForcePos, b.Width)
-	move := *b.GetDirectionFromTo(from, *gh.target)
+	move := *b.GetDirectionFromTo(*gh.forces, *gh.target)
 
-	forces := b.ForcesMap.Get(from)
+	forces := b.ForcesMap.Get(*gh.forces)
 	dist := b.OutsideMap.Get(*gh.target) - 1
 
 	if dist > forces {
@@ -69,7 +72,10 @@ findTarget:
 		move.Count = dist
 	}
 
-	b.ForcesMap.Data[maxForce] -= move.Count
+	b.ForcesMap.Data[gh.forces.GetPos(b.Width)] -= move.Count
+
+	gh.forces.Move(move.Direction)
+	//log.Printf("GH: moves %+v\n", move)
 	log.Printf("GH: moving %d forces to target %+v\n", move.Count, *gh.target)
 	t.Movements = append(t.Movements, move)
 }

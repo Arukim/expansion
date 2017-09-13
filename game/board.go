@@ -20,6 +20,7 @@ type Board struct {
 	Tick            int
 	TotalWalkCells  int
 	TotalFreeCells  int
+	TotalMines      int
 	OccupationRate  float64
 
 	WalkMap    *m.Map
@@ -81,6 +82,7 @@ func (b *Board) parse(t *m.TurnInfo) {
 		switch walkLayer[b.rotate(i)] {
 		case '$':
 			b.MinesList = append(b.MinesList, m.NewPoint(i, b.Width))
+			b.TotalMines++
 			fallthrough
 		case '1', '2', '3', '4', '.':
 			b.WalkMap.Data[i] = 0
