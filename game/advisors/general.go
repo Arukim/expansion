@@ -24,12 +24,44 @@ func (g *General) MakeTurn(b *game.Board, t *m.Turn) {
 		return
 	}
 
-	t.Increase = append(t.Increase, m.Increase{
-		Count:  1000,
-		Region: moves[0].Region,
-	})
+	g.borderSpawn(b, t)
 
 	t.Movements = append(t.Movements, moves...)
+}
+
+func (g *General) borderSpawn(b *game.Board, t *m.Turn) {
+	if b.ForcesAvailable == 0 {
+		return
+	}
+
+	pointsMap := []m.Point{}
+	linq.From(b.InsideMap.Filter(func(p m.Point, v int) bool {
+		return v == 1
+	})).SelectT(func(kv linq.KeyValue) m.Point {
+		return kv.Key.(m.Point)
+	}).ToSlice(&pointsMap)
+
+	if len(pointsMap) == 0 {
+		return
+	}
+
+	increaseMap := map[m.Point]int{}
+	for b.ForcesAvailable > 0 {
+		for _, p := range pointsMap {
+			increaseMap[p]++
+			b.ForcesAvailable--
+			if b.ForcesAvailable == 0 {
+				break
+			}
+		}
+	}
+
+	inc := []m.Increase{}
+	linq.From(increaseMap).SelectT(func(kv linq.KeyValue) m.Increase {
+		return m.Increase{Region: kv.Key.(m.Point), Count: kv.Value.(int)}
+	}).ToSlice(&inc)
+
+	t.Increase = append(t.Increase, inc...)
 }
 
 func (g *General) findMove() []m.Movement {
@@ -47,7 +79,7 @@ func (g *General) findMove() []m.Movement {
 		// p = linq.From(b.Enemies).OrderByT(func(x m.Point) int {
 		// 	return b.OutsideMap.Get(x) - 1
 		// }).First().(m.Point)
-		return []m.Movement{}	
+		return []m.Movement{}
 	} else {
 		return []m.Movement{}
 	}

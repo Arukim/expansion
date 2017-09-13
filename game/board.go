@@ -17,6 +17,7 @@ type Board struct {
 
 	ForcesAvailable int
 	Turn            int
+	Tick            int
 	TotalWalkCells  int
 	TotalFreeCells  int
 	OccupationRate  float64
@@ -68,7 +69,8 @@ func (b *Board) parse(t *m.TurnInfo) {
 	b.Size = mapSize
 	b.Width = mapWidth
 	b.ForcesAvailable = t.Available
-	b.Turn = t.Tick
+	b.Turn = t.Round
+	b.Tick = t.Tick
 
 	//fmt.Printf("Map size: %v, side: %v", mapSize, mapWidth)
 

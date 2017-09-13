@@ -9,33 +9,56 @@ import (
 	"github.com/arukim/expansion/models"
 )
 
+type gameStage int
+
+const (
+	earlyGame gameStage = iota
+	lateGame
+)
+
 type Player struct {
-	id            int
-	earlyAdvisors []advisors.Advisor
-	lateAdvisors  []advisors.Advisor
+	id        int
+	advisors  map[gameStage][]advisors.Advisor
+	gameStage gameStage
 }
 
 // NewPlayer const
 func NewPlayer(id int) *Player {
 	p := &Player{id: id}
 
-	p.earlyAdvisors = []advisors.Advisor{
+	p.NewGame()
+
+	return p
+}
+
+func (p *Player) NewGame() {
+	p.gameStage = earlyGame
+	p.advisors = make(map[gameStage][]advisors.Advisor)
+
+	p.advisors[earlyGame] = []advisors.Advisor{
+		advisors.NewGoldHunter(),
 		advisors.NewEarlyExplorer(),
 		advisors.NewInternal(),
 	}
 
-	p.lateAdvisors = []advisors.Advisor{
+	p.advisors[lateGame] = []advisors.Advisor{
 		advisors.NewExplorer(),
 		advisors.NewGeneral(),
 		advisors.NewInternal(),
 	}
-
-	return p
 }
 
 func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 
 	b := game.NewBoard(turnInfo)
+
+	if b.Turn == -1 {
+		log.Println("waiting for game in lobby...")
+		return &models.Turn{}
+	}
+	if b.Turn == 0 {
+		p.NewGame()
+	}
 
 	if b.TotalWalkCells == b.MyInfo.TerritorySize {
 		log.Println("won solo game")
@@ -47,22 +70,22 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 		Movements: []models.Movement{},
 	}
 
-	fmt.Printf("P%d inc: %d space: %d freeForces: %d occup: %f\n", p.id, b.ForcesAvailable, b.MyInfo.TerritorySize, b.MyInfo.ForcesFree, b.OccupationRate)
+	fmt.Printf("T[%d] inc: %d space: %d freeForces: %d occup: %f stage: %+v\n",
+		b.Turn, b.ForcesAvailable, b.MyInfo.TerritorySize,
+		b.MyInfo.ForcesFree, b.OccupationRate, p.gameStage)
+
+	if b.OccupationRate > 0.75 {
+		p.gameStage = lateGame
+	}
+
 	if b.MyInfo.ForcesTotal > 0 {
-		var advSet []advisors.Advisor
-		// TODO: add more checks, enclave territory check, free mines check.
-		if b.OccupationRate < 0.75 {
-			advSet = p.earlyAdvisors
-		} else {
-			advSet = p.lateAdvisors
-		}
+		var advSet = p.advisors[p.gameStage]
 
 		for _, adv := range advSet {
 			adv.MakeTurn(b, playerTurn)
 		}
-
 	} else {
-		fmt.Printf("I've done")
+		fmt.Println("I've done")
 	}
 	//fmt.Printf("P%d making turn\n", p.id)
 	//fmt.Printf("player turn is %+v\n", playerTurn)

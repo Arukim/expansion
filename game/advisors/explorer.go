@@ -22,7 +22,10 @@ func (g *Explorer) MakeTurn(b *game.Board, t *m.Turn) {
 		if b.OutsideMap.Data[i] == 2 {
 			p1 := m.NewPoint(i, b.Width)
 			targetForces := b.ForcesMap.Get(p1)
-			moves := b.GetDirectionTo(p1, b.OutsideMap)
+			moves := []m.Movement{}
+			linq.From(b.GetDirectionTo(p1, b.OutsideMap)).OrderByDescendingT(func(m m.Movement) int {
+				return b.ForcesMap.Get(m.Region)
+			}).ToSlice(&moves)
 
 			for _, mov := range moves {
 				inc[mov.Region] = true
@@ -35,6 +38,7 @@ func (g *Explorer) MakeTurn(b *game.Board, t *m.Turn) {
 			}).SumInts())
 
 			if myTotalForces > targetForces {
+
 				total := targetForces
 				for _, m := range moves {
 					availableToAttack := b.ForcesMap.Get(m.Region) - 1
@@ -43,15 +47,7 @@ func (g *Explorer) MakeTurn(b *game.Board, t *m.Turn) {
 						continue
 					}
 
-					if availableToAttack > total {
-						rest := availableToAttack - total
-						if rest > 2 && rest < 20 {
-							rest = 2
-						}
-						m.Count = total + rest
-					} else {
-						m.Count = availableToAttack
-					}
+					m.Count = availableToAttack
 
 					total -= m.Count
 					b.ForcesMap.Data[m.Region.GetPos(b.Width)] -= m.Count
