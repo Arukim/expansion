@@ -21,10 +21,6 @@ func (g *Internal) MakeTurn(b *game.Board, t *m.Turn) {
 			move.Count = b.ForcesMap.Data[i] - 1
 
 			t.Movements = append(t.Movements, *move)
-			t.Increase = append(t.Increase, m.Increase{
-				Count:  100,
-				Region: move.Region,
-			})
 		}
 	}
 }

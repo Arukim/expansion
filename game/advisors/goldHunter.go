@@ -11,7 +11,7 @@ import (
 // GoldHunter is advisor with main focus to get gold mines ASAP
 type GoldHunter struct {
 	target   *m.Point
-	forces   pointEx
+	forces   *m.Point
 	finished bool
 }
 
