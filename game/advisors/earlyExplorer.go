@@ -61,6 +61,9 @@ func (g *EarlyExplorer) MakeTurn(b *game.Board, t *m.Turn) {
 				b.Neighbours(p, func(i1 int, p1 m.Point) bool {
 					v := reverseMap.Data[i1]
 					if v > 0 && v < i {
+						if b.FreeMines[p] == true {
+							pointsMap[p1] += earlyExplorerMineConst
+						}
 						pointsMap[p1] += pointsMap[p]
 						return false
 					}
@@ -137,6 +140,7 @@ func (g *EarlyExplorer) MakeTurn(b *game.Board, t *m.Turn) {
 			if cell.V > 0 {
 				cell.V--
 				increaseMap[cell.P]++
+				b.ForcesMap.Data[cell.P.GetPos(b.Width)]++
 
 				b.ForcesAvailable--
 				changes++

@@ -36,12 +36,14 @@ func (p *Player) NewGame() {
 	p.advisors = make(map[gameStage][]advisors.Advisor)
 
 	p.advisors[earlyGame] = []advisors.Advisor{
-		advisors.NewGoldHunter(),
+		//advisors.NewGoldHunter(),
 		advisors.NewEarlyExplorer(),
+		advisors.NewDefenceAdvisor(),
 		advisors.NewInternal(),
 	}
 
 	p.advisors[lateGame] = []advisors.Advisor{
+		advisors.NewDefenceAdvisor(),
 		advisors.NewExplorer(),
 		advisors.NewGeneral(),
 		advisors.NewInternal(),
@@ -62,7 +64,7 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 	}
 
 	if b.TotalWalkCells == b.MyInfo.TerritorySize {
-		log.Println("won solo game")
+		log.Println("won game")
 		return nil
 	}
 
@@ -75,7 +77,7 @@ func (p *Player) MakeTurn(turnInfo *models.TurnInfo) *models.Turn {
 		b.Turn, b.ForcesAvailable, b.MyInfo.TerritorySize,
 		b.MyInfo.ForcesFree, b.OccupationRate, p.gameStage)
 
-	if b.OccupationRate > 0.75 {
+	if b.OccupationRate > 0.9 {
 		p.gameStage = lateGame
 	}
 

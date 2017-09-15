@@ -59,8 +59,8 @@ func (c *Client) run() {
 				payload, _ := json.Marshal(t)
 				msg = fmt.Sprintf("message('%s')", payload)
 			} else {
-				log.Println("Sending act(0)!")
-				msg = "act(0)"
+				//log.Println("Sending act(0)!")
+				//msg = "act(0)"
 			}
 			//log.Printf("%s\n", msg)
 			//time.Sleep(100 * time.Millisecond)

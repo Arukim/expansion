@@ -1,7 +1,7 @@
 package advisors
 
 import (
-	"math/rand"
+	"math"
 
 	linq "github.com/ahmetb/go-linq"
 	"github.com/arukim/expansion/game"
@@ -17,7 +17,6 @@ func NewExplorer() *Explorer {
 }
 
 func (g *Explorer) MakeTurn(b *game.Board, t *m.Turn) {
-	inc := make(map[m.Point]bool)
 	for i := 0; i < b.Size; i++ {
 		if b.OutsideMap.Data[i] == 2 {
 			p1 := m.NewPoint(i, b.Width)
@@ -27,19 +26,18 @@ func (g *Explorer) MakeTurn(b *game.Board, t *m.Turn) {
 				return b.ForcesMap.Get(m.Region)
 			}).ToSlice(&moves)
 
-			for _, mov := range moves {
-				inc[mov.Region] = true
-			}
-
 			movesL := linq.From(moves)
 			// check if zerg atack is available
 			myTotalForces := int(movesL.SelectT(func(m m.Movement) int {
 				return b.ForcesMap.Get(m.Region) - 1
 			}).SumInts())
 
-			if myTotalForces > targetForces {
+			if (float64(myTotalForces) > (float64)(targetForces)*explorerAttackRate) || targetForces == 0 {
 
 				total := targetForces
+				if total > 0 {
+					total = (int)(math.Ceil(math.Min(float64(total+20), float64(total)*explorerAttackRate))) + 1
+				}
 				for _, m := range moves {
 					availableToAttack := b.ForcesMap.Get(m.Region) - 1
 
@@ -61,14 +59,4 @@ func (g *Explorer) MakeTurn(b *game.Board, t *m.Turn) {
 			}
 		}
 	}
-
-	dest := make([]m.Increase, len(inc))
-	perm := rand.Perm(len(inc))
-	i := 0
-	for p := range inc {
-		dest[perm[i]] = m.Increase{Count: 1, Region: p}
-		i++
-	}
-
-	t.Increase = append(t.Increase, dest...)
 }
